@@ -7,4 +7,6 @@
 5. Для установки переменных окружения — ARG не сохраняется в контейнере, но поскольку есть директива ENV и с любой из директив можно использовать ARG, то можно сохранить значение в ENV, используя следующую структуру:
    `ARG KEY
    ENV KEY $KEY`
-6. 
+
+### build: `docker build --build-arg NG_VERSION=stable --build-arg ARG_FILE=test.txt -t nginx:rbm-dkr-10 .`
+### run: `docker run -d -p 8080:80 -e REBRAINME=DKR10 <image_id>`
