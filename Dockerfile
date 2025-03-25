@@ -17,4 +17,4 @@ RUN pipenv install --skip-lock
 COPY . .
 
 # Указываем команду запуска
-CMD ["pipenv", "run", "python", "main.py"]
+CMD ["pipenv", "run", "python", "server.py"]

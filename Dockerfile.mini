@@ -1,0 +1,20 @@
+# Используем более лёгкий образ
+FROM python:3.7-buster
+
+# Создаём рабочую директорию
+WORKDIR /app
+
+# Копируем файлы зависимостей
+COPY Pipfile Pipfile.lock ./
+
+# Устанавливаем pipenv и зависимости без кеша
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir setuptools==57.5.0 pipenv \
+    && pipenv install --skip-lock \
+    && rm -rf /root/.cache/pip /usr/local/bin/pip /usr/local/bin/pip3 Pipfile Pipfile.lock
+
+# Копируем весь проект
+COPY . .
+
+# Запуск приложения
+CMD ["pipenv", "run", "python", "server.py"]
