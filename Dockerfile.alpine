@@ -1,0 +1,19 @@
+FROM openjdk:8-jdk-alpine
+
+ENV http_proxy=http://172.25.113.50:8085
+ENV http_proxy=http://172.25.113.50:8085
+
+WORKDIR /app
+
+
+
+RUN apk add --no-cache bash curl tar && \
+    curl -fsSL https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz | tar -xz -C /usr/local && \
+    ln -s /usr/local/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn
+
+COPY . .
+
+RUN mvn clean package -DskipTests && \
+    rm -rf /usr/local/apache-maven-3.9.9
+
+CMD ["java", "-jar", "target/zookeeper-*.jar"]
