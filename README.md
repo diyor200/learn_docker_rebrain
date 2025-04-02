@@ -1,1 +1,2 @@
-# learn_docker_rebrain
+# network
+create network: docker network create -d [bridge|host] <name>
