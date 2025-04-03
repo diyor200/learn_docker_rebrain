@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  web:
+    image: nginx:stable
+    container_name: nginx
+    ports:
+      - "18888:80"
