@@ -41,7 +41,7 @@ services:
   app:
     build: .
     env_file:
-      - .env
+      - .env.dist
 #    command: ["php", "artisan", "migrate", "--force"]
     depends_on:
       mysql:
