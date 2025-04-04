@@ -28,14 +28,19 @@ RUN mkdir -p /usr/src/php/ext/redis \
 COPY --from=composer /app /var/www/html
 WORKDIR /var/www/html
 
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+ && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+ && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
 # 👇 Now set permissions and clear/cache Laravel
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
- && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
- && php artisan config:clear \
- && php artisan cache:clear \
- && php artisan route:clear \
- && php artisan view:clear \
- && php artisan config:cache
+ && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 EXPOSE 9000
 CMD ["php-fpm"]
+

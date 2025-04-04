@@ -42,7 +42,6 @@ services:
     build: .
     env_file:
       - .env.dist
-#    command: ["php", "artisan", "migrate", "--force"]
     depends_on:
       mysql:
         condition: service_healthy
