@@ -1,46 +1,15 @@
-FROM composer:1.9 AS composer
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
-
-RUN docker-php-ext-install pdo pdo_mysql \
- && mkdir -p /usr/src/php/ext/redis \
- && curl -L https://github.com/phpredis/phpredis/archive/5.0.0.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
- && echo 'redis' >> /usr/src/php-available-exts \
- && docker-php-ext-install redis
-
 COPY . .
-RUN composer install --prefer-dist --no-scripts --no-progress --optimize-autoloader
 
-# --------------------------------------------------------
+RUN go mod tidy && go build -o app main.go
 
-FROM php:7.3.3-fpm-alpine AS phpfpm
 
-RUN apk add --no-cache bash libpng libpng-dev libjpeg-turbo-dev libwebp-dev zlib-dev libzip-dev \
- && docker-php-ext-install pdo pdo_mysql zip
+FROM alpine
 
-# Redis extension
-RUN mkdir -p /usr/src/php/ext/redis \
- && curl -L https://github.com/phpredis/phpredis/archive/5.0.0.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
- && echo 'redis' >> /usr/src/php-available-exts \
- && docker-php-ext-install redis
+COPY --from=builder app .
 
-# 👇 Now copy Laravel project
-COPY --from=composer /app /var/www/html
-WORKDIR /var/www/html
+EXPOSE 8080
 
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
- && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
- && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# 👇 Now set permissions and clear/cache Laravel
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
- && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-EXPOSE 9000
-CMD ["php-fpm"]
-
+CMD [ "./app" ]
