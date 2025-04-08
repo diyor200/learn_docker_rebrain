@@ -17,30 +17,23 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
-    networks:
-      - app_net
   
   redis:
     image: redis:8.0-M04-alpine
     ports:
       - "6379:6379"
-    networks:
-      - app_net
 
   app:
     build: .
     env_file:
       - .env
     # logging:
-    #   driver: fluentd
+    #   driver: "fluentd"
     #   options:
-    #     fluentd-address: fluentd:24224f 
-    #     tag: go.gin
-    networks:
-      - app_net
-    depends_on:
-      - db
-      - fluentd
+    #     fluentd-address: "fluentd:24224" 
+    #     tag: "go.gin"
+    ports:
+      - "8080:8080"
     restart: always
 
   elasticsearch:
@@ -51,8 +44,6 @@ services:
       - xpack.security.http.ssl.enabled=false
     ports:
       - "9200:9200"
-    networks:
-      - app_net
   
   kibana:
     image: kibana:8.16.6
@@ -60,26 +51,20 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
-    networks:
-      - app_net
 
   fluentd:
     build: ./fluentd
     volumes:
-      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+      - ./fluentd/conf:/fluentd/etc
       - ./logs:/var/log/app
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    links:
+      - "elasticsearch"
     ports:
       - "24224:24224"
       - "24224:24224/udp"
-    depends_on:
-      - elasticsearch
-    networks:
-      - app_net
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "24224"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    # depends_on:
+    #   - elasticsearch
 
     
 
