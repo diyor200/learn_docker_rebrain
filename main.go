@@ -10,10 +10,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 )
 
+var httpRequestsTotal = prometheus.NewCounter(
+	prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Total number of HTTP requests",
+	},
+)
+
 func main() {
+	prometheus.MustRegister(httpRequestsTotal)
+
 	serverPort := os.Getenv("SERVER_PORT")
 
 	dbUser := os.Getenv("POSTGRES_USER")
@@ -75,6 +86,7 @@ func main() {
 
 	log.Println("Configuring handler ...")
 	router.GET("/users", func(ctx *gin.Context) {
+		httpRequestsTotal.Inc()
 		log.Println("request received. IP", ctx.Request.RemoteAddr)
 		var users = []struct {
 			Name   string `json:"name"`
@@ -95,6 +107,8 @@ func main() {
 
 		ctx.JSON(http.StatusOK, gin.H{"users": users})
 	})
+	// prometheus
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	log.Println("Running server on", serverPort)
 	router.Run(serverPort)
