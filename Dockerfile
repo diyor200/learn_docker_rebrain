@@ -1,7 +1,15 @@
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
+COPY . .
 
-COPY main .
+# Build for Linux (Alpine is Linux-based), static build
+RUN go build -o server main.go
 
-CMD [ "./main" ]
+# Final small image
+FROM alpine
+WORKDIR /app
+
+COPY --from=builder /app/server .
+
+CMD ["./server"]
