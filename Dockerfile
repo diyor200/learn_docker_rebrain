@@ -1,7 +1,7 @@
-FROM golang:1.24-alpine AS builder
+FROM alpine
 
 WORKDIR /app
 
-COPY main .
-
+COPY . .
+RUN ls
 CMD [ "./main" ]
