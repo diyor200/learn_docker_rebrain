@@ -1,0 +1,7 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+COPY main .
+
+CMD [ "./main" ]
