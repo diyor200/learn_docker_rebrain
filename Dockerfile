@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 
 # Build for Linux (Alpine is Linux-based), static build
-RUN go build -o server main.go
+RUN GOOS=linux GOARCH=amd64 go build -o server main.go
 
 # Final small image
 FROM alpine
