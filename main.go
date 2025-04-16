@@ -5,11 +5,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 func main() {
 	log.Println("Configuring router ...")
 	router := gin.Default()
+
+	// Prometheus middleware
+	log.Println("Configuring Prometheus metrics ...")
+	p := ginprometheus.NewPrometheus("gin")
+	p.Use(router)
 
 	log.Println("Configuring handler ...")
 	router.GET("/users", func(ctx *gin.Context) {
@@ -17,7 +23,7 @@ func main() {
 		var users = []struct {
 			Name   string `json:"name"`
 			Age    int    `json:"age"`
-			Status string `jsong:"active"`
+			Status string `json:"status"`
 		}{
 			{
 				Name:   "Alex",

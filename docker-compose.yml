@@ -1,30 +1,31 @@
+x-logging:
+  &loki
+  logging:
+    driver: loki
+    options:
+      loki-url: "http://loki:3100/loki/api/v1/push"
+      loki-batch-size: "400"
+      loki-retries: "5"
+
+
 services:
   go-app:
-    build: .
+    image: diyorbek001/go-app:latest
     ports:
       - "8080:8080"
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://loki:3100/loki/api/v1/push"
+    <<: *loki
     networks:
       - app-net
-
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:latest    
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - app-net
-
-  promtail:
-    image: grafana/promtail:latest
     volumes:
-      - /var/log:/var/log
-      - ./promtail-config.yaml:/etc/promtail/promtail.yaml
-    command: -config.file=/etc/promtail/promtail.yaml
+      - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki:/data/loki
+    command: 
+      -config.file=/etc/loki/loki-config.yaml
     networks:
       - app-net
 
@@ -38,6 +39,10 @@ services:
     networks:
       - app-net
 
+volumes:
+  loki:
+
 networks:
   app-net:
+    external: true
     driver: "bridge"
