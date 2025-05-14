@@ -22,6 +22,11 @@ jobs:
           pwd
           ls -la
 
+      - name: Create Loki data dir with correct permissions
+        run: |
+          mkdir -p ./data
+          chmod -R 777 ./data
+
       - name: Deploy with Docker Compose
         run: |
           cd ${{ github.workspace }}
