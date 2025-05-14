@@ -1,0 +1,61 @@
+version: '3.9'
+x-logging:
+  &loki-logging
+  logging:
+    driver: loki
+    options:
+      loki-url: "http://loki:3100/loki/api/v1/push"
+      loki-batch-size: "400"
+      loki-retries: "5"
+      loki-timeout: "10s"
+
+services:
+  app:
+    image: diyorbek2001/go-app:latest
+    ports:
+      - "8080:8080"
+    <<: *loki-logging
+  loki:
+    image: grafana/loki:2.9.1
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki:/data/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GRAFANA_USERNAME=admin
+      - GRAFANA_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+volumes:
+  grafana-storage:
+  loki:
+
+networks:
+  default:
+    external: true
+    name: int-network
